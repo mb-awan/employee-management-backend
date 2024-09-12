@@ -1,6 +1,4 @@
-import { Types } from 'mongoose';
-
-import { UserRoles, UserStatus } from '@/common/constants/enums';
+import { Types } from "mongoose";
 
 export interface IAddress {
   street: string;
@@ -15,27 +13,8 @@ export interface IPermissions {
   description: string;
 }
 
-export interface IRoles {
-  id: string;
-  name: UserRoles;
-  permissions: IPermissions[];
-}
-
 export interface IUser {
   id: string;
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  email: string;
-  role: IRoles | Types.ObjectId | { id: string; name: UserRoles };
-  status: UserStatus;
-  phone: string;
-  address?: IAddress;
-  emailVerified: boolean;
-  phoneVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-  profilePicture?: string;
 }
 
 export interface IUserDoc extends IUser, Document {
