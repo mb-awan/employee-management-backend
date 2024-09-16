@@ -8,7 +8,7 @@ import {
 } from "../../common/controllers/userSalary";
 import { validateRequest } from "../../common/utils/httpHandlers";
 import { salarySchema } from "./userSalarySchemas";
-import { authenticate } from "../../common/middleware/authenticate";
+import { authenticate } from "../../common/utils/authenticate";
 
 export const UserSalary = {
   getAll: "/all",
@@ -21,7 +21,7 @@ export const UserSalary = {
 export const userSalaryRoutes: Router = (() => {
   const router = express.Router();
 
-  router.get(UserSalary.getAll, getAllUsersSalary);
+  router.get(UserSalary.getAll, authenticate, getAllUsersSalary);
   router.get(UserSalary.getSingle, getsingleUserSalary);
   router.post(
     UserSalary.create,

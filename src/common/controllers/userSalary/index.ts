@@ -5,19 +5,17 @@ import { APIResponse } from "../../utils/response";
 import Salary from "../../models/userSalary";
 import User from "../../models/user";
 import { log } from "console";
-import { IUserRequest } from "../../middleware/authenticate";
-
+import { IUserRequest } from "../../utils/authenticate";
 export const createUserSalary = async (req: IUserRequest, res: Response) => {
   const userId = req.id;
   try {
     const {
       basicPay,
-      totalHours,
+      committedHours,
       workingHours,
       publiceLeaves,
       publicLeaveWorkingHour,
       PaidLeavesformonth,
-      workedInPublicLeaves,
       requiredHoursThisMonth,
       overTimeHours,
       basicPayPerHourThisMonth,
@@ -31,17 +29,9 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
 
     console.log(req.body);
 
-    if (!basicPay || !totalHours || !workingHours || !totalSalaryThisMonth) {
-      return APIResponse.error(
-        res,
-        "All fields are required",
-        StatusCodes.BAD_REQUEST
-      );
-    }
-
     const existingSalary = await Salary.findOne({
       basicPay,
-      totalHours,
+      committedHours,
       workingHours,
       publiceLeaves,
       publicLeaveWorkingHour,
@@ -60,7 +50,17 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
     if (existingSalary) {
       return APIResponse.error(
         res,
-        "Duplicate y data found",
+        "Duplicate  data found",
+        StatusCodes.CONFLICT
+      );
+    }
+
+    // check all feild are required
+
+    if (!basicPay || !committedHours || !workingHours) {
+      return APIResponse.error(
+        res,
+        "All fields are required",
         StatusCodes.CONFLICT
       );
     }
@@ -68,12 +68,11 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
     // Create new user salary
     const newUserSalary = new Salary({
       basicPay,
-      totalHours,
+      committedHours,
       workingHours,
       publiceLeaves,
       publicLeaveWorkingHour,
       PaidLeavesformonth,
-      workedInPublicLeaves,
       requiredHoursThisMonth,
       overTimeHours,
       basicPayPerHourThisMonth,
@@ -108,7 +107,9 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
     );
   }
 };
-export const getAllUsersSalary = async (req: Request, res: Response) => {
+export const getAllUsersSalary = async (req: IUserRequest, res: Response) => {
+  const userId = req.id;
+  console.log(req.id);
   try {
     // Pagination parameters
     const page = parseInt(req.query.page as string) || 1;
@@ -126,10 +127,10 @@ export const getAllUsersSalary = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     // Fetch total count of salary records
-    const totalCount = await Salary.countDocuments();
+    const totalCount = await Salary.countDocuments({ user: userId });
 
     // Fetch salary records with pagination
-    const salaries = await Salary.find()
+    const salaries = await Salary.find({ user: userId })
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 }); // Sort by creation date, newest first
@@ -171,10 +172,16 @@ export const getAllUsersSalary = async (req: Request, res: Response) => {
     );
   }
 };
-
 export const getsingleUserSalary = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.query;
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return APIResponse.error(
+        res,
+        "User ID is required",
+        StatusCodes.BAD_REQUEST
+      );
+    }
     console.log(userId);
 
     // Validate userId
@@ -218,7 +225,7 @@ export const updateUserSalary = async (req: Request, res: Response) => {
     console.log(userId);
     const {
       basicPay,
-      totalHours,
+      committedHours,
       workingHours,
       publicLeaveWorkingHour,
       overTimeHours,
@@ -254,7 +261,7 @@ export const updateUserSalary = async (req: Request, res: Response) => {
 
     // Update the salary record
     salary.basicPay = basicPay;
-    salary.totalHours = totalHours;
+    salary.committedHours = committedHours;
     salary.workingHours = workingHours;
     salary.publicLeaveWorkingHour = publicLeaveWorkingHour;
     salary.overTimeHours = overTimeHours;

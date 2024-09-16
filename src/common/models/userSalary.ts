@@ -1,11 +1,27 @@
-// salary.model.js
 import mongoose from "mongoose";
+import { string } from "zod";
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const SalarySchema = new mongoose.Schema({
   basicPay: {
     type: Number,
     required: true,
   },
-  totalHours: {
+  committedHours: {
     type: Number,
     required: true,
   },
@@ -65,6 +81,11 @@ const SalarySchema = new mongoose.Schema({
   totalSalaryThisMonth: {
     type: Number,
     required: true,
+  },
+
+  month: {
+    type: String,
+    default: () => months[new Date().getMonth()],
   },
 
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
