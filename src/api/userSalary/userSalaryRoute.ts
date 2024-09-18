@@ -11,11 +11,11 @@ import { salarySchema } from "./userSalarySchemas";
 import { authenticate } from "../../common/utils/authenticate";
 
 export const UserSalary = {
-  getAll: "/all",
+  getAll: "/",
   getSingle: "/getSingle",
-  create: "/create",
+  create: "/",
   update: "/",
-  delete: "/delete",
+  delete: "/",
 };
 
 export const userSalaryRoutes: Router = (() => {
@@ -31,10 +31,11 @@ export const userSalaryRoutes: Router = (() => {
   );
   router.put(
     UserSalary.update,
+    authenticate,
     validateRequest(salarySchema),
     updateUserSalary
   );
-  router.delete(UserSalary.delete, deleteUserSalary);
+  router.delete(UserSalary.delete, authenticate, deleteUserSalary);
 
   return router;
 })();

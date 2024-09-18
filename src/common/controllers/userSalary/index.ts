@@ -295,23 +295,23 @@ export const updateUserSalary = async (req: Request, res: Response) => {
 };
 export const deleteUserSalary = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.query;
+    const { invoiceId } = req.query;
     // Validate userId
     if (
-      !userId ||
-      typeof userId !== "string" ||
-      !mongoose.Types.ObjectId.isValid(userId)
+      !invoiceId ||
+      typeof invoiceId !== "string" ||
+      !mongoose.Types.ObjectId.isValid(invoiceId)
     ) {
       return APIResponse.error(res, "Invalid user ID", StatusCodes.BAD_REQUEST);
     }
     // Find the user
-    const user = await Invoice.findById(userId);
+    const user = await Invoice.findById(invoiceId);
     if (!user) {
       return APIResponse.error(res, "User not found", StatusCodes.NOT_FOUND);
     }
 
     // Find the salary record for the user
-    const salary = await Invoice.findById(userId);
+    const salary = await Invoice.findById(invoiceId);
     if (!salary) {
       return APIResponse.error(
         res,
