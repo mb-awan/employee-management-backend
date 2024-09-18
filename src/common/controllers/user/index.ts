@@ -4,7 +4,6 @@ import { Types } from "mongoose";
 import { generateToken, hashPassword, isValidPassword } from "../../utils/auth";
 import User from "../../models/user";
 import { APIResponse } from "../../utils/response";
-import Salary from "../../models/userSalary";
 
 // Register user controller
 export const registerUser = async (req: Request, res: Response) => {
@@ -35,7 +34,7 @@ export const registerUser = async (req: Request, res: Response) => {
     await newUser.save();
 
     // Generate JWT token
-    const token = generateToken(newUser._id);
+    const token = generateToken(newUser._id, newUser.username);
 
     console.log(token);
 
@@ -73,7 +72,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     // Generate JWT token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.username);
 
     // Send success response
     return APIResponse.success(res, "User logged in successfully", { token });

@@ -6,10 +6,12 @@ import { APIResponse } from "../utils/response";
 import { StatusCodes } from "http-status-codes";
 import { IUser } from "../types/users";
 import * as express from "express";
+import { IUserRequest } from "../utils/types";
 env.config();
 
-export interface IUserRequest extends express.Request {
-  id?: string;
+interface JwtPayload {
+  id: string;
+  username: string;
 }
 
 export const authenticate = (
@@ -22,20 +24,21 @@ export const authenticate = (
   if (!token) {
     return res.status(401).json({ message: "Authentication required" });
   }
-  jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err, decoded) => {
-    if (err) {
-      return APIResponse.error(
-        res,
-        "Invalid token",
-        null,
-        StatusCodes.BAD_REQUEST
-      );
-    }
 
-    console.log("Authenticate", decoded);
-    const { id } = decoded as { id: string };
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY as string
+    ) as JwtPayload;
 
-    req.id = id;
+    req.user = { id: decoded.id, username: decoded.username };
     next();
-  });
+  } catch (err) {
+    return APIResponse.error(
+      res,
+      "Invalid token",
+      null,
+      StatusCodes.BAD_REQUEST
+    );
+  }
 };

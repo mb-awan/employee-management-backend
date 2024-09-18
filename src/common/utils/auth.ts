@@ -2,9 +2,10 @@ import { env } from "./envConfig";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-export const generateToken = (id: any) => {
+export const generateToken = (id: any, username: string) => {
   const payload = {
     id: id,
+    username: username,
   };
 
   const token = jwt.sign(payload, env.JWT_SECRET_KEY as string, {

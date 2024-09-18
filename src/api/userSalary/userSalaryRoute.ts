@@ -14,7 +14,7 @@ export const UserSalary = {
   getAll: "/all",
   getSingle: "/getSingle",
   create: "/create",
-  update: "/update",
+  update: "/",
   delete: "/delete",
 };
 
@@ -22,7 +22,7 @@ export const userSalaryRoutes: Router = (() => {
   const router = express.Router();
 
   router.get(UserSalary.getAll, authenticate, getAllUsersSalary);
-  router.get(UserSalary.getSingle, getsingleUserSalary);
+  router.get(UserSalary.getSingle, authenticate, getsingleUserSalary);
   router.post(
     UserSalary.create,
     authenticate,

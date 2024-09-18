@@ -53,7 +53,7 @@ const SalarySchema = new mongoose.Schema({
     required: true,
   },
 
-  overTimepayPerHourThisMonth: {
+  overTimePayPerHourThisMonth: {
     type: Number,
     required: true,
   },
@@ -91,5 +91,5 @@ const SalarySchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
-const Salary = mongoose.model("Salary", SalarySchema);
-export default Salary;
+const Invoice = mongoose.model("Salary", SalarySchema);
+export default Invoice;
