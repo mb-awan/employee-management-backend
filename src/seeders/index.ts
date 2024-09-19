@@ -1,6 +1,6 @@
 import { env } from "../common/utils/envConfig";
 import mongoose from "mongoose";
-import seedUsers from "./userseed";
+import seedUsers from "./user";
 const { MONGO_URL } = env;
 
 const seedDatabase = async () => {

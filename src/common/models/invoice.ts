@@ -1,22 +1,7 @@
 import mongoose from "mongoose";
-import { string } from "zod";
+import { MODEL_NAMES } from "./constants";
 
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const SalarySchema = new mongoose.Schema({
+const InvoicesSchema = new mongoose.Schema({
   basicPay: {
     type: Number,
     required: true,
@@ -85,11 +70,16 @@ const SalarySchema = new mongoose.Schema({
 
   month: {
     type: String,
-    default: () => months[new Date().getMonth()],
+    default: () => {
+      const currentDate = new Date();
+      return new Intl.DateTimeFormat("en-US", { month: "long" }).format(
+        currentDate
+      );
+    },
   },
 
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: MODEL_NAMES.User },
 });
 
-const Invoice = mongoose.model("Salary", SalarySchema);
+const Invoice = mongoose.model(MODEL_NAMES.Invoice, InvoicesSchema);
 export default Invoice;

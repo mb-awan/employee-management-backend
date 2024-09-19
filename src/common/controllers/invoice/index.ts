@@ -5,7 +5,7 @@ import { APIResponse } from "../../utils/response";
 import User from "../../models/user";
 import { log } from "console";
 import { IUserRequest } from "../../utils/types";
-import Invoice from "../../models/userSalary";
+import Invoice from "../../models/invoice";
 export const createUserSalary = async (req: IUserRequest, res: Response) => {
   const user = req.user;
   console.log(req.user?.username);

@@ -5,7 +5,7 @@ import {
   getAllUsersSalary,
   getsingleUserSalary,
   updateUserSalary,
-} from "../../common/controllers/userSalary";
+} from "../../common/controllers/invoice";
 import { validateRequest } from "../../common/utils/httpHandlers";
 import { salarySchema } from "./userSalarySchemas";
 import { authenticate } from "../../common/utils/authenticate";
