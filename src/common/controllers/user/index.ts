@@ -36,23 +36,21 @@ export const registerUser = async (req: Request, res: Response) => {
     // Generate JWT token
     const token = generateToken(newUser._id, newUser.username);
 
-    console.log(token);
-
     APIResponse.success(res, "User registered successfully", {
       token,
     });
   } catch (error) {
-    console.error("Error in registerUser:", error);
+    console.error("Error in register User:", error);
     return APIResponse.error(res, "Server error", StatusCodes.BAD_REQUEST);
   }
 };
 
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ $or: [{ email }, { username }] });
     if (!user) {
       return APIResponse.error(
         res,
@@ -78,7 +76,7 @@ export const loginUser = async (req: Request, res: Response) => {
     return APIResponse.success(res, "User logged in successfully", { token });
   } catch (error: unknown) {
     console.error(
-      "Error in loginUser:",
+      "Error in login User:",
       error instanceof Error ? error.message : String(error)
     );
 

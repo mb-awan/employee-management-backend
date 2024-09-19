@@ -6,9 +6,14 @@ import User from "../../models/user";
 import { log } from "console";
 import { IUserRequest } from "../../utils/types";
 import Invoice from "../../models/invoice";
-export const createUserSalary = async (req: IUserRequest, res: Response) => {
+
+import { invoicePaths } from "../../../api/invoice/invoiceRoute";
+import {
+  transformInvoice,
+  transformInvoicesArray,
+} from "../../utils/transformResoonse";
+export const createInvoice = async (req: IUserRequest, res: Response) => {
   const user = req.user;
-  console.log(req.user?.username);
   try {
     const {
       basicPay,
@@ -30,7 +35,7 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
 
     console.log(req.body);
 
-    const existingSalary = await Invoice.findOne({
+    const existingInvoice = await Invoice.findOne({
       basicPay,
       committedHours,
       workingHours,
@@ -48,7 +53,7 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
       totalSalaryThisMonth,
     });
 
-    if (existingSalary) {
+    if (existingInvoice) {
       return APIResponse.error(
         res,
         "Duplicate  data found",
@@ -56,18 +61,7 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
       );
     }
 
-    // check all feild are required
-
-    if (!basicPay || !committedHours || !workingHours) {
-      return APIResponse.error(
-        res,
-        "All fields are required",
-        StatusCodes.CONFLICT
-      );
-    }
-
-    // Create new user salary
-    const newUserSalary = new Invoice({
+    const newInvoice = new Invoice({
       basicPay: Math.ceil(basicPay),
       committedHours: Math.ceil(committedHours),
       workingHours: Math.ceil(workingHours),
@@ -86,31 +80,31 @@ export const createUserSalary = async (req: IUserRequest, res: Response) => {
       user: user?.id,
     });
 
-    // Save the new user salary
-    const savedUserSalary = await newUserSalary.save();
+    const invoice = await newInvoice.save();
 
     await User.findByIdAndUpdate(user?.id, {
-      $push: { salary: newUserSalary._id },
+      $push: { invoices: newInvoice._id },
     });
+
+    const updatedInvoice = transformInvoice(invoice);
 
     return APIResponse.success(
       res,
-      "User salary created successfully",
-      savedUserSalary,
+      "Invoice created successfully",
+      { invoice: updatedInvoice },
       StatusCodes.CREATED
     );
   } catch (error) {
-    console.error("Error creating user salary:", error);
+    console.error("Error creating Invoice:", error);
     return APIResponse.error(
       res,
-      "An error occurred while creating user salary",
+      "An error occurred while creating Invoice",
       StatusCodes.INTERNAL_SERVER_ERROR
     );
   }
 };
-export const getAllUsersSalary = async (req: IUserRequest, res: Response) => {
+export const getAllInvoices = async (req: IUserRequest, res: Response) => {
   const user = req.user;
-  console.log(req.user);
   try {
     // Pagination parameters
     const page = parseInt(req.query.page as string) || 1;
@@ -127,19 +121,18 @@ export const getAllUsersSalary = async (req: IUserRequest, res: Response) => {
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
 
-    // Fetch total count of salary records
     const totalCount = await Invoice.countDocuments({ user: user?.id });
 
-    // Fetch salary records with pagination
-    const salaries = await Invoice.find({ user: user?.id })
+    const invoice = await Invoice.find({ user: user?.id })
+      .select("-__v -password")
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 }); // Sort by creation date, newest first
 
-    if (!salaries || salaries.length === 0) {
+    if (!invoice || invoice.length === 0) {
       return APIResponse.success(
         res,
-        "No salary records found",
+        "No Invoice records found",
         [],
         StatusCodes.OK
       );
@@ -158,22 +151,24 @@ export const getAllUsersSalary = async (req: IUserRequest, res: Response) => {
       hasPrevPage,
     };
 
+    const updatedInvoice = transformInvoicesArray(invoice);
+
     return APIResponse.success(
       res,
-      "Salary records retrieved successfully",
-      { salaries, pagination: paginationInfo },
+      "Invoice records retrieved successfully",
+      { invoice: updatedInvoice, pagination: paginationInfo },
       StatusCodes.OK
     );
   } catch (error) {
-    console.error("Error fetching all user salaries:", error);
+    console.error("Error fetching Invoices:", error);
     return APIResponse.error(
       res,
-      "An error occurred while fetching user salaries",
+      "An error occurred while fetching Invoices",
       StatusCodes.INTERNAL_SERVER_ERROR
     );
   }
 };
-export const getsingleUserSalary = async (req: Request, res: Response) => {
+export const getSingleInvoice = async (req: Request, res: Response) => {
   try {
     const invoiceId = req.query.invoiceId as string;
     if (!invoiceId) {
@@ -185,43 +180,35 @@ export const getsingleUserSalary = async (req: Request, res: Response) => {
     }
     console.log(invoiceId);
 
-    // Validate userId
-    if (
-      !invoiceId ||
-      typeof invoiceId !== "string" ||
-      !mongoose.Types.ObjectId.isValid(invoiceId)
-    ) {
-      return APIResponse.error(res, "Invalid user ID", StatusCodes.BAD_REQUEST);
-    }
-
     // Find the salary record for the user
-    const salary = await Invoice.findById(invoiceId);
-    if (!salary) {
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
       return APIResponse.error(
         res,
-        "Salary record not found for this user",
+        "Invoice record not found ",
         StatusCodes.NOT_FOUND
       );
     }
+    const updatedInvoice = transformInvoice(invoice);
 
     return APIResponse.success(
       res,
-      "User salary retrieved successfully",
-      { invoice: salary },
+      " Invoice retrieved successfully",
+      { invoice: updatedInvoice },
       StatusCodes.OK
     );
   } catch (error) {
-    console.error("Error fetching single user salary:", error);
+    console.error("Error fetching Invoice:", error);
     return APIResponse.error(
       res,
-      "An error occurred while fetching user salary",
+      "An error occurred while fetching Invoice",
       StatusCodes.INTERNAL_SERVER_ERROR
     );
   }
 };
-export const updateUserSalary = async (req: Request, res: Response) => {
+export const updateInvoice = async (req: Request, res: Response) => {
   try {
-    const { invoiceId } = req.query;
+    const invoiceId = req.query.invoiceId as string;
     console.log(invoiceId);
     const {
       basicPay,
@@ -242,21 +229,11 @@ export const updateUserSalary = async (req: Request, res: Response) => {
       user: userId,
     } = req.body;
 
-    // Validate userId
-    if (
-      !invoiceId ||
-      typeof invoiceId !== "string" ||
-      !mongoose.Types.ObjectId.isValid(invoiceId)
-    ) {
-      return APIResponse.error(res, "Invalid user ID", StatusCodes.BAD_REQUEST);
-    }
-
-    // Find the salary record for the user
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
       return APIResponse.error(
         res,
-        "Salary record not found for this user",
+        " Invoice not found ",
         StatusCodes.NOT_FOUND
       );
     }
@@ -278,60 +255,57 @@ export const updateUserSalary = async (req: Request, res: Response) => {
       (invoice.totalSalaryThisMonth = totalSalaryThisMonth),
       (invoice.user = userId),
       await invoice.save();
+
+    const updatedInvoice = transformInvoice(invoice);
+
     return APIResponse.success(
       res,
-      "Salary record updated successfully",
-      { invoice },
+      "Invoice  updated successfully",
+      { invoice: updatedInvoice },
       StatusCodes.OK
     );
   } catch (error) {
-    console.error("Error updating user salary:", error);
+    console.error("Error updating Invoice:", error);
     return APIResponse.error(
       res,
-      "An error occurred while updating user salary",
+      "An error occurred while updating Invoice",
       StatusCodes.INTERNAL_SERVER_ERROR
     );
   }
 };
-export const deleteUserSalary = async (req: Request, res: Response) => {
+export const deleteInvoice = async (req: Request, res: Response) => {
   try {
     const { invoiceId } = req.query;
-    // Validate userId
-    if (
-      !invoiceId ||
-      typeof invoiceId !== "string" ||
-      !mongoose.Types.ObjectId.isValid(invoiceId)
-    ) {
-      return APIResponse.error(res, "Invalid user ID", StatusCodes.BAD_REQUEST);
-    }
+
     // Find the user
     const user = await Invoice.findById(invoiceId);
     if (!user) {
-      return APIResponse.error(res, "User not found", StatusCodes.NOT_FOUND);
+      return APIResponse.error(res, "Invoice not found", StatusCodes.NOT_FOUND);
     }
 
     // Find the salary record for the user
-    const salary = await Invoice.findById(invoiceId);
-    if (!salary) {
-      return APIResponse.error(
-        res,
-        "Salary record not found for this user",
-        StatusCodes.NOT_FOUND
-      );
+    const invoice = await Invoice.findById(invoiceId);
+
+    if (!invoice) {
+      return APIResponse.error(res, "Invoice not found", StatusCodes.NOT_FOUND);
     }
 
     // Delete the salary record
-    await salary.deleteOne();
+    await invoice.deleteOne();
+
+    const updatedInvoice = transformInvoice(invoice);
+
     return APIResponse.success(
       res,
-      "Salary record deleted successfully",
+      " Invoice deleted successfully",
+      { invoice: updatedInvoice },
       StatusCodes.OK
     );
   } catch (error) {
-    console.error("Error deleting user salary:", error);
+    console.error("Error deleting Invoice:", error);
     return APIResponse.error(
       res,
-      "An error occurred while deleting user salary",
+      "An error occurred while deleting Invoice",
       StatusCodes.INTERNAL_SERVER_ERROR
     );
   }

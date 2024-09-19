@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 export const APIResponse = {
   success: (res: Response, message: string, data?: any, statusCode = 200) => {
