@@ -6,7 +6,7 @@ import { APIResponse } from "../utils/response";
 import { StatusCodes } from "http-status-codes";
 import { IUser } from "../types/users";
 import * as express from "express";
-import { IUserRequest } from "../utils/types";
+import { CustomRequest } from "./types";
 env.config();
 
 interface JwtPayload {
@@ -15,14 +15,19 @@ interface JwtPayload {
 }
 
 export const authenticate = (
-  req: IUserRequest,
+  req: CustomRequest,
   res: Response,
   next: NextFunction
 ) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ message: "Authentication required" });
+    return APIResponse.error(
+      res,
+      "Authentication required",
+      null,
+      StatusCodes.BAD_REQUEST
+    );
   }
 
   try {

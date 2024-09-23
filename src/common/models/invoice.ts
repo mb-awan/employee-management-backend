@@ -2,70 +2,61 @@ import mongoose from "mongoose";
 import { MODEL_NAMES } from "./constants";
 
 const InvoicesSchema = new mongoose.Schema({
-  basicPay: {
+  basicPayForThisMonth: {
     type: Number,
     required: true,
   },
-  committedHours: {
+  committedHoursForThisMonth: {
     type: Number,
     required: true,
   },
-  workingHours: {
+  workingHoursForThisMonth: {
     type: Number,
     required: true,
   },
-  publiceLeaves: {
+  publiceLeavesForThisMonth: {
     type: Number,
   },
-  publicLeaveWorkingHour: {
+  publiceLeaveWorkingHourForThisMonth: {
     type: Number,
   },
-  PaidLeavesformonth: {
+  paidLeavesForThisMonth: {
     type: Number,
   },
-  requiredHoursThisMonth: {
+  requiredTotalHoursForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  overTimeHours: {
+  overTimeHoursForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  basicPayPerHourThisMonth: {
+  basicPayPerHourForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  overTimePayPerHourThisMonth: {
+  overTimePayPerHourForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  publicHoursPayPerHourThisMonth: {
+  publiceLeavesPayPerHourForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  totalBasicSalaryThisMonth: {
+  totalBasicSalaryForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  overTimePayThisMonth: {
+  overTimePayForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  totalPublicLeavesPayThisMonth: {
+  totalPublicLeavesPayForThisMonth: {
     type: Number,
-    required: true,
   },
 
-  totalSalaryThisMonth: {
+  totalSalaryForThisMonth: {
     type: Number,
-    required: true,
   },
 
   month: {
@@ -75,6 +66,29 @@ const InvoicesSchema = new mongoose.Schema({
       return new Intl.DateTimeFormat("en-US", { month: "long" }).format(
         currentDate
       );
+    },
+  },
+
+  year: {
+    type: Number,
+    default: () => {
+      const currentDate = new Date();
+      return currentDate.getFullYear();
+    },
+  },
+
+  slug: {
+    type: String,
+    default: () => {
+      const currentDate = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        month: "short",
+        year: "2-digit",
+      };
+      const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
+        currentDate
+      );
+      return formattedDate.replace(" ", "-");
     },
   },
 

@@ -15,6 +15,10 @@ import {
   getSingleInvoiceSchema,
   updateInvoiceSchema,
 } from "./invoiceSchema";
+import {
+  calculateInvoiceMiddleware,
+  updateCalculateInvoiceMiddleware,
+} from "../../common/middleware/invoice";
 
 export const invoicePaths = {
   getAll: "/",
@@ -43,12 +47,14 @@ export const invoiceRoutes: Router = (() => {
     invoicePaths.create,
     authenticate,
     validateRequest(createInvoiceSchema),
+    calculateInvoiceMiddleware,
     createInvoice
   );
   router.put(
     invoicePaths.update,
     authenticate,
     validateRequest(updateInvoiceSchema),
+    updateCalculateInvoiceMiddleware,
     updateInvoice
   );
   router.delete(

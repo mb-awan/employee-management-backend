@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import { APIResponse } from "../../utils/response";
 import User from "../../models/user";
 import { log } from "console";
-import { IUserRequest } from "../../utils/types";
 import Invoice from "../../models/invoice";
 
 import { invoicePaths } from "../../../api/invoice/invoiceRoute";
@@ -12,71 +11,15 @@ import {
   transformInvoice,
   transformInvoicesArray,
 } from "../../utils/transformResoonse";
-export const createInvoice = async (req: IUserRequest, res: Response) => {
-  const user = req.user;
+import { CustomRequest } from "../../utils/types";
+export const createInvoice = async (req: CustomRequest, res: Response) => {
   try {
-    const {
-      basicPay,
-      committedHours,
-      workingHours,
-      publiceLeaves,
-      publicLeaveWorkingHour,
-      PaidLeavesformonth,
-      requiredHoursThisMonth,
-      overTimeHours,
-      basicPayPerHourThisMonth,
-      overTimePayPerHourThisMonth,
-      publicHoursPayPerHourThisMonth,
-      totalBasicSalaryThisMonth,
-      overTimePayThisMonth,
-      totalPublicLeavesPayThisMonth,
-      totalSalaryThisMonth,
-    } = req.body;
-
-    console.log(req.body);
-
-    const existingInvoice = await Invoice.findOne({
-      basicPay,
-      committedHours,
-      workingHours,
-      publiceLeaves,
-      publicLeaveWorkingHour,
-      PaidLeavesformonth,
-      requiredHoursThisMonth,
-      overTimeHours,
-      basicPayPerHourThisMonth,
-      overTimePayPerHourThisMonth,
-      publicHoursPayPerHourThisMonth,
-      totalBasicSalaryThisMonth,
-      overTimePayThisMonth,
-      totalPublicLeavesPayThisMonth,
-      totalSalaryThisMonth,
-    });
-
-    if (existingInvoice) {
-      return APIResponse.error(
-        res,
-        "Duplicate  data found",
-        StatusCodes.CONFLICT
-      );
-    }
+    const user = req.user;
+    const invoiceData = req.invoiceData;
+    console.log(invoiceData);
 
     const newInvoice = new Invoice({
-      basicPay: Math.ceil(basicPay),
-      committedHours: Math.ceil(committedHours),
-      workingHours: Math.ceil(workingHours),
-      publiceLeaves: Math.ceil(publiceLeaves),
-      publicLeaveWorkingHour: Math.ceil(publicLeaveWorkingHour),
-      PaidLeavesformonth: Math.ceil(PaidLeavesformonth),
-      requiredHoursThisMonth: Math.ceil(requiredHoursThisMonth),
-      overTimeHours: Math.ceil(overTimeHours),
-      basicPayPerHourThisMonth: Math.ceil(basicPayPerHourThisMonth),
-      overTimePayPerHourThisMonth: Math.ceil(overTimePayPerHourThisMonth),
-      publicHoursPayPerHourThisMonth: Math.ceil(publicHoursPayPerHourThisMonth),
-      totalBasicSalaryThisMonth: Math.ceil(totalBasicSalaryThisMonth),
-      overTimePayThisMonth: Math.ceil(overTimePayThisMonth),
-      totalPublicLeavesPayThisMonth: Math.ceil(totalPublicLeavesPayThisMonth),
-      totalSalaryThisMonth: Math.ceil(totalSalaryThisMonth),
+      ...invoiceData,
       user: user?.id,
     });
 
@@ -103,7 +46,7 @@ export const createInvoice = async (req: IUserRequest, res: Response) => {
     );
   }
 };
-export const getAllInvoices = async (req: IUserRequest, res: Response) => {
+export const getAllInvoices = async (req: CustomRequest, res: Response) => {
   const user = req.user;
   try {
     // Pagination parameters
@@ -206,62 +149,46 @@ export const getSingleInvoice = async (req: Request, res: Response) => {
     );
   }
 };
-export const updateInvoice = async (req: Request, res: Response) => {
+export const updateInvoice = async (req: CustomRequest, res: Response) => {
   try {
     const invoiceId = req.query.invoiceId as string;
-    console.log(invoiceId);
-    const {
-      basicPay,
-      committedHours,
-      workingHours,
-      publiceLeaves,
-      publicLeaveWorkingHour,
-      PaidLeavesformonth,
-      requiredHoursThisMonth,
-      overTimeHours,
-      basicPayPerHourThisMonth,
-      overTimePayPerHourThisMonth,
-      publicHoursPayPerHourThisMonth,
-      totalBasicSalaryThisMonth,
-      overTimePayThisMonth,
-      totalPublicLeavesPayThisMonth,
-      totalSalaryThisMonth,
-      user: userId,
-    } = req.body;
+    const invoiceData = req.invoiceData;
 
-    const invoice = await Invoice.findById(invoiceId);
-    if (!invoice) {
-      return APIResponse.error(
-        res,
-        " Invoice not found ",
-        StatusCodes.NOT_FOUND
-      );
+    const updateData = {
+      basicPayForThisMonth: invoiceData?.basicPayForThisMonth,
+      committedHoursForThisMonth: invoiceData?.committedHoursForThisMonth,
+      workingHoursForThisMonth: invoiceData?.workingHoursForThisMonth,
+      publiceLeavesForThisMonth: invoiceData?.publiceLeavesForThisMonth,
+      publicLeaveWorkingHourForThisMonth:
+        invoiceData?.publiceLeaveWorkingHourForThisMonth,
+      paidLeavesForThisMonth: invoiceData?.paidLeavesForThisMonth,
+      totalSalaryForThisMonth: invoiceData?.totalSalaryForThisMonth,
+      overTimePayThisMonth: invoiceData?.overTimePayThisMonth,
+      totalPublicLeavesPayForThisMonth:
+        invoiceData?.totalPublicLeavesPayForThisMonth,
+      overTimeHoursForThisMonth: invoiceData?.overTimeHoursForThisMonth,
+      requiredTotalHoursThisMonth: invoiceData?.requiredTotalHoursThisMonth,
+      basicPayPerHourForThisMonth: invoiceData?.basicPayPerHourForThisMonth,
+      overTimePayPerHourForThisMonth:
+        invoiceData?.overTimePayPerHourForThisMonth,
+      publicLeavesPayPerHourForThisMonth:
+        invoiceData?.publiceLeavesPayPerHourForThisMonth,
+    };
+    const updatedUser = await Invoice.findByIdAndUpdate(invoiceId, updateData, {
+      new: true, // Return the updated document
+    });
+
+    if (!updatedUser) {
+      return APIResponse.error(res, "User not found", StatusCodes.NOT_FOUND);
     }
 
-    (invoice.basicPay = basicPay),
-      (invoice.committedHours = committedHours),
-      (invoice.workingHours = workingHours),
-      (invoice.publiceLeaves = publiceLeaves),
-      (invoice.publicLeaveWorkingHour = publicLeaveWorkingHour),
-      (invoice.PaidLeavesformonth = PaidLeavesformonth),
-      (invoice.requiredHoursThisMonth = requiredHoursThisMonth),
-      (invoice.overTimeHours = overTimeHours),
-      (invoice.basicPayPerHourThisMonth = basicPayPerHourThisMonth),
-      (invoice.overTimePayPerHourThisMonth = overTimePayPerHourThisMonth),
-      (invoice.publicHoursPayPerHourThisMonth = publicHoursPayPerHourThisMonth),
-      (invoice.totalBasicSalaryThisMonth = totalBasicSalaryThisMonth),
-      (invoice.overTimePayThisMonth = overTimePayThisMonth),
-      (invoice.totalPublicLeavesPayThisMonth = totalPublicLeavesPayThisMonth),
-      (invoice.totalSalaryThisMonth = totalSalaryThisMonth),
-      (invoice.user = userId),
-      await invoice.save();
+    const invoice = transformInvoice(updatedUser);
 
-    const updatedInvoice = transformInvoice(invoice);
-
+    // Return success response with updated data
     return APIResponse.success(
       res,
-      "Invoice  updated successfully",
-      { invoice: updatedInvoice },
+      "User updated successfully",
+      invoice,
       StatusCodes.OK
     );
   } catch (error) {
