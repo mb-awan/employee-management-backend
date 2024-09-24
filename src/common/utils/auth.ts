@@ -1,21 +1,22 @@
-require("dotenv").config();
+import { env } from "./envConfig";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-export const generateToken = (id: any) => {
+export const generateToken = (id: any, username: string) => {
   const payload = {
     id: id,
+    username: username,
   };
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET_KEY as string, {
-    expiresIn: process.env.JWT_EXPIRES_IN as string,
+  const token = jwt.sign(payload, env.JWT_SECRET_KEY as string, {
+    expiresIn: env.JWT_EXPIRES_IN as string,
   });
 
   return token;
 };
 
 export const hashPassword = async (password: string) => {
-  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+  const saltRounds = Number(env.BCRYPT_SALT_ROUNDS) || 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   return hashedPassword;
